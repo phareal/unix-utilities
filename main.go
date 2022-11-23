@@ -8,5 +8,6 @@ import (
 func main() {
     var rootCmd = &cobra.Command{Use: "app"}
     rootCmd.AddCommand(cmd.CatCmd)
+    cmd.DefineCatFlags(cmd.CatCmd)
     rootCmd.Execute()
 }

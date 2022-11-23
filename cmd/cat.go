@@ -1,45 +1,61 @@
 package cmd
 
 import (
-    "errors"
-    "fmt"
+	"errors"
+	"fmt"
 	"github.com/spf13/cobra"
-    "log"
-    "os"
+	"github.com/spf13/pflag"
+	"log"
+	"os"
 )
 
-func catify(params []string) {
+// define flags
 
-    // loop through the params
-    for _, filePath := range params {
-        log.Print(filePath)
-        if _, err := os.Stat(filePath) ; err == nil{
-            file, error := os.ReadFile(filePath)
-            // if error print error
-            if error != nil {
-               fmt.Print(error)
-            }
-            // if not error print the content of the file
-            fmt.Println(string(file))
+type Options struct {
+	flags  *pflag.FlagSet
+	params []string
+}
 
-        }else if errors.Is(err, os.ErrNotExist) {
-            fmt.Print(err)
-            break  // if error quit the request
-        }
-    }
+var numberOfLines string // -n define the lines of the Number all output lines.
+
+func catify(options Options) {
+
+	// loop through the params
+	for _, filePath := range options.params {
+		log.Print(filePath)
+		if _, err := os.Stat(filePath); err == nil {
+			file, error := os.ReadFile(filePath)
+			// if error print error
+			if error != nil {
+				fmt.Print(error)
+			}
+			// if not error print the content of the file
+			fmt.Println(string(file))
+
+		} else if errors.Is(err, os.ErrNotExist) {
+			fmt.Print(err)
+			break // if error quit the request
+		}
+	}
 }
 
 var CatCmd = &cobra.Command{
-    Use:   "cat is a standard Unix utility that reads files sequentially, writing them to standard output.",
-	Short: "",
-    Args: func(cmd *cobra.Command, args []string) error {
-        if len(args) > 0 {
-            return nil
-        }
-        return errors.New("requires at least one arg")
-    },
-    Long:  `cat is a standard Unix utility that reads files sequentially, writing them to standard output. The name is derived from its function to (con)catenate files (from Latin catenare, "to chain"). It has been ported to a number of operating systems.`,
+	Use:   "cat is a standard Unix utility that reads files sequentially, writing them to standard output.",
+	Short: "Concatenate FILE(s) to standard output.",
+
 	Run: func(cmd *cobra.Command, args []string) {
-        catify(args)
+		var flagsOption = cmd.Flags()
+		var options = Options{
+			flags:  flagsOption,
+			params: args,
+		}
+		fmt.Print(options.flags.GetString("n"))
+		catify(options)
 	},
+}
+
+// define the cat cmd version with
+
+func DefineCatFlags(command *cobra.Command) {
+	command.Flags().StringVarP(&numberOfLines, "number", "n", "", "number all output lines")
 }
